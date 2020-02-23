@@ -2,7 +2,7 @@
 * Game: Taisho
 * Author: Adam M. Deaton
 * Version: 0.1 
-* Date: 2020-02-10
+* Date: 2020-02-20
 * Copyright: All rights reserved: Adam M. Deaton 2020
 */ 
 var canvas = document.getElementById("myCanvas");
@@ -443,17 +443,37 @@ function printStats(unit){
 }
 
 //Function takes a unit as a parameter and displays its special ability for selection
-function printOptions(unit){
-    ctx.fillStyle = "white"
+function printOptions(unit, options){
     ctx.font = "20px Comic Sans MS";
     ctx.textAlign = "center";
     ctx.beginPath();
+    if(options == 0){
+	ctx.fillStyle = "gold";
+    }
+    else{
+	ctx.fillStyle = "white";
+    }
     ctx.fillText("MOVE", 845, 565);
+    if(options == 1){
+	ctx.fillStyle = "gold";
+    }
+    else{
+	ctx.fillStyle = "white";
+    }
     if(unit.type == "archer"){
 	ctx.fillText("BOW", 945, 565);
     }
     else if(unit.type == "ninja"){
 	ctx.fillText("KUNAI", 945, 565);
+    }
+    else if(unit.type == "medic"){
+	ctx.fillText("HEAL", 945, 565);
+    }
+    else if(unit.type == "kenshi"){
+	ctx.fillText("IAI", 945, 565);
+    }
+    else if(unit.type == "monk"){
+	ctx.fillText("OKYO", 945, 565);
     }
     ctx.closePath();
 }
@@ -512,10 +532,11 @@ function displayCreateKumi(){
 function renewMov(game){
     for(var i = 0; i < game.kumi.count; i++){
 	game.kumi.tai[i].mov = game.kumi.tai[i].movMax;
-	game.enemyKumi.tai[i].mov = game.enemyKumi.tai[i].movMax;
+	game.kumi.tai[i].att = game.kumi.tai[i].attMax;
     } 
     for(var i = 0; i < game.enemyKumi.count; i++){
 	game.enemyKumi.tai[i].mov = game.enemyKumi.tai[i].movMax;
+	game.enemyKumi.tai[i].att = game.enemyKumi.tai[i].attMax;
     } 
 }
 
@@ -633,9 +654,11 @@ function startGame(){
 		console.log("X " + tempX + " Y " + tempY);
 	     	if(tempX == 10 && tempY == 10){
 		    if(curTurn == 1){
+			enemyKumi.upgrade();
 			curTurn = 0;
 		    }
 		    else{
+			shinsengumi.upgrade();
 			curTurn = 1;
 		    }
 		    renewMov(myGame);
@@ -653,7 +676,7 @@ function startGame(){
 			}
 			else{
 		    	    printStats(myGame.board[tempY][tempX].soldier);
-		    	    printOptions(myGame.board[tempY][tempX].soldier);
+		    	    printOptions(myGame.board[tempY][tempX].soldier, options);
 			    //No moves remaining reset X, Y
 			    if(myGame.board[tempY][tempX].soldier.mov < 1){
 				tempY = -1;
@@ -675,10 +698,12 @@ function startGame(){
 	    else if(terrainIDX == 10 && terrainIDY == 8){
 			options = 0;
 			console.log("Move");
+			printOptions(myGame.board[tempY][tempX].soldier, options);
 	    }
 	    else if(terrainIDX == 11 && terrainIDY == 8){
 			options = 1;
 			console.log("Special");
+			printOptions(myGame.board[tempY][tempX].soldier, options);
 			
 	    }
 	    //if tempX > 9 then tempX is not a moveable unit
@@ -699,7 +724,7 @@ function startGame(){
 			    }
 			}
 			//Assassinate
-			if(myGame.board[tempY][tempX].soldier.type == "ninja"){
+			else if(myGame.board[tempY][tempX].soldier.type == "ninja"){
 			    console.log("assassinate");
 		
 			    if(myGame.board[tempY][tempX].soldier.assassinate(myGame.board[terrainIDY][terrainIDX].soldier, myGame.board[tempY][tempX].id, terrainIDX, terrainIDY) == "dead"){
@@ -707,13 +732,30 @@ function startGame(){
 				myGame.board[tempY][tempX].soldier = null; //Remove unit from board
 			    }
 			}
+			//Heal
+			else if(myGame.board[tempY][tempX].soldier.type == "medic"){
+			    console.log("heal");
+			    myGame.board[tempY][tempX].soldier.useMedic(myGame.board[terrainIDY][terrainIDX].soldier, myGame.board[tempY][tempX].id, terrainIDX, terrainIDY)
+			}
+                        //IAIjutsu
+			else if(myGame.board[tempY][tempX].soldier.type == "kenshi"){
+			    console.log("iaijutsu");
+			    myGame.board[tempY][tempX].soldier.iaijutsu(myGame.board[tempY][tempX].id, myGame.board);
+			    if(myGame.board[tempY][tempX].soldier.hp <= 0){
+				myGame.board[tempY][tempX].soldier = null;
+			    }
+			}
+			//Okyou
+			else if(myGame.board[tempY][tempX].soldier.type == "monk"){
+			    console.log("okyou");
+			    myGame.board[tempY][tempX].soldier.okyou(myGame.board[terrainIDY][terrainIDX].soldier);
+			}
 		}
 		tempX = -1;
 		tempY = -1;
 		terrainIDY = -1;
 		terrainIDX = -1;
 	    }
-    	    console.log("Complete " + tempY);
 	    drawTerrain(myGame.board);
             displayBoardUnits(myGame);
 	    winner = checkWinState(myGame);

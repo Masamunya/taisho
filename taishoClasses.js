@@ -2,7 +2,7 @@
 * Game: Taisho
 * Author: Adam M. Deaton
 * Version: 0.1 
-* Date: 2020-02-10
+* Date: 2020-02-20
 * Copyright: All rights reserved: Adam M. Deaton 2020
 */  
 
@@ -14,6 +14,7 @@ class Unit{
 	this.color = color;
 	if(type == "kenshi"){
 	    this.att = 10;
+	    this.attMax = 10;
             this.def = 10;
             this.hp = 10;
 	    this.hpMax = 10;
@@ -27,6 +28,7 @@ class Unit{
 	}
 	else if(type == "ninja"){
 	    this.att = 8;
+	    this.attMax = 8;
             this.def = 5;
             this.hp = 8;
 	    this.hpMax = 8;
@@ -40,6 +42,7 @@ class Unit{
 	}
 	else if(type == "cavalry"){
 	    this.att = 12;
+	    this.attMax = 12;
             this.def = 8;
             this.hp = 15;
 	    this.hpMax = 15;
@@ -53,6 +56,7 @@ class Unit{
 	}
 	else if(type == "archer"){
             this.att = 2;
+	    this.attMax = 2;
             this.def = 2;
             this.hp = 5;
 	    this.hpMax = 5;
@@ -67,6 +71,7 @@ class Unit{
 	else if(type == "taisho"){
 	    //New to modify this unit
 	    this.att = 15;
+	    this.attMax = 15;
             this.def = 15;
             this.hp = 20;
 	    this.hpMax = 20;
@@ -80,6 +85,7 @@ class Unit{
 	}
 	else if(type == "ashigaru"){
 	    this.att = 5;
+	    this.attMax = 5;
             this.def = 5;
             this.hp = 5;
 	    this.hpMax = 5;
@@ -93,6 +99,7 @@ class Unit{
 	}
 	else if(type == "medic"){
 	    this.att = 1;
+	    this.attMax = 1;
             this.def = 1;
             this.hp = 5;
 	    this.hpMax = 5;
@@ -106,6 +113,7 @@ class Unit{
 	}
 	else if(type == "monk"){
 	    this.att = 8;
+	    this.attMax = 8;
             this.def = 8;
             this.hp = 8;
 	    this.hpMax = 8;
@@ -121,11 +129,28 @@ class Unit{
 		alert("ERROR: Unit type not recognized.");
 	}
     }
-    useMedic(unit){
-	unit.hp = unit.hp + (unit.hpMax * 1.25);
-	Math.floor(unit.hp)
-	if(unit.hp > unit.hpMax){
-		unit.hp = unit.hpMax;
+    //medic special ability
+    useMedic(unit, thisLocationID, targetX, targetY){
+	if(this.type == "medic" && this.mov > 0){
+	    let x = thisLocationID % 10;
+	    let y = Math.floor(thisLocationID / 10);
+            let diffX = targetX - x;
+	    let diffY = targetY - y;
+	    //Check for positive value
+	    if(diffX < 0){
+	        diffX = diffX * -1;
+	    }
+	    if(diffY < 0){
+	    	diffY = diffY * -1;
+	    }
+	    if(1 >= diffX && 1 >= diffY && ((diffX + diffY) != 0)){
+		unit.hp = unit.hp + (unit.hpMax * 0.25);
+		unit.hp = Math.floor(unit.hp);
+    		this.mov = this.mov - 1;
+	        if(unit.hp > unit.hpMax){
+		    unit.hp = unit.hpMax;
+		}
+	    }
         }
     }
     //archer special ability
@@ -187,11 +212,135 @@ class Unit{
 		return "alive";
 	}
     }
-    upgrade(){
-	this.hp = this.hpMax + 1;
-	this.att = this.att + 1;
-	this.def = this.def + 1;
-	this.dan = this.dan + 1;
+    //Kenshi special ability
+    iaijutsu(thisLocationsID, board){
+	if(this.type == "kenshi" && this.mov > 0){
+	    let x = thisLocationsID % 10;
+	    let y = Math.floor(thisLocationsID / 10);
+            //north
+	    if(board[y - 1][x].soldier != null){
+	        if(board[y - 1][x].soldier.color != this.color){
+		    this.mov = this.mov - 1;
+		    board[y - 1][x].soldier.hp = board[y - 1][x].soldier.hp - (Math.floor(this.att / 2));
+	        }
+		if((board[y - 1][x].soldier.type) == "taisho"){
+			this.hp = this.hp - (board[y - 1][x].soldier.att);
+		}
+		if(board[y - 1][x].soldier.hp <= 0){
+			board[y - 1][x].soldier = null;
+			this.kills++;
+		}
+            }
+	    //Northwest
+	    if(board[y - 1][x - 1].soldier != null){
+	        if(board[y - 1][x - 1].soldier.color != this.color){
+		    this.mov = this.mov - 1;
+		    board[y - 1][x - 1].soldier.hp = board[y - 1][x - 1].soldier.hp - (Math.floor(this.att / 2));
+	        }
+		if((board[y - 1][x - 1].soldier.type) == "taisho"){
+			this.hp = this.hp - (board[y - 1][x - 1].soldier.att);
+		}
+		if(board[y - 1][x - 1].soldier.hp <= 0){
+			board[y - 1][x - 1].soldier = null;
+			this.kills++;
+		}
+            }
+	    //Northeast
+	    if(board[y - 1][x + 1].soldier != null){
+	        if(board[y - 1][x + 1].soldier.color != this.color){
+		    this.mov = this.mov - 1;
+		    board[y - 1][x + 1].soldier.hp = board[y - 1][x + 1].soldier.hp - (Math.floor(this.att / 2));
+	        }
+		if((board[y - 1][x + 1].soldier.type) == "taisho"){
+			this.hp = this.hp - (board[y - 1][x + 1].soldier.att);
+		}
+		if(board[y - 1][x + 1].soldier.hp <= 0){
+			board[y - 1][x + 1].soldier = null;
+			this.kills++;
+		}
+            }
+ 	    //South
+	    if(board[y + 1][x].soldier != null){
+	        if(board[y + 1][x].soldier.color != this.color){
+		    this.mov = this.mov - 1;
+		    board[y + 1][x].soldier.hp = board[y + 1][x].soldier.hp - (Math.floor(this.att / 2));
+	        }
+		if(board[y + 1][x].soldier.type == "taisho"){
+			this.hp = this.hp - (board[y + 1][x].soldier.att);
+		}
+		if(board[y + 1][x].soldier.hp <= 0){
+			board[y + 1][x].soldier = null;
+			this.kills++;
+		}
+            }
+	    //Southwest
+	    if(board[y + 1][x - 1].soldier != null){
+	        if(board[y + 1][x - 1].soldier.color != this.color){
+		    this.mov = this.mov - 1;
+		    board[y + 1][x - 1].soldier.hp = board[y + 1][x - 1].soldier.hp - (Math.floor(this.att / 2));
+	        }
+		if(board[y + 1][x - 1].soldier.type == "taisho"){
+			this.hp = this.hp - (board[y + 1][x - 1].soldier.att);
+		}
+		if(board[y + 1][x - 1].soldier.hp <= 0){
+			board[y + 1][x - 1].soldier = null;
+			this.kills++;
+		}
+            }
+	    //Southeast
+	    if(board[y + 1][x + 1].soldier != null){
+	        if(board[y + 1][x + 1].soldier.color != this.color){
+		    this.mov = this.mov - 1;
+		    board[y + 1][x + 1].soldier.hp = board[y + 1][x + 1].soldier.hp - (Math.floor(this.att / 2));
+	        }
+		if(board[y + 1][x + 1].soldier.type == "taisho"){
+			this.hp = this.hp - (board[y + 1][x + 1].soldier.att);
+		}
+		if(board[y + 1][x + 1].soldier.hp <= 0){
+			board[y + 1][x + 1].soldier = null;
+			this.kills++;
+		}
+            }
+	    //West
+	    if(board[y][x - 1].soldier != null){
+	        if(board[y][x - 1].soldier.color != this.color){
+		    this.mov = this.mov - 1;
+		    board[y][x - 1].soldier.hp = board[y][x - 1].soldier.hp - (Math.floor(this.att / 2));
+	        }
+		if(board[y][x - 1].soldier.type == "taisho"){
+			this.hp = this.hp - (board[y][x - 1].soldier.att);
+		}
+		if(board[y][x - 1].soldier.hp <= 0){
+			board[y][x - 1].soldier = null;
+			this.kills++;
+		}
+            }
+	    //East
+	    if(board[y][x + 1].soldier != null){
+	        if(board[y][x + 1].soldier.color != this.color){
+		    this.mov = this.mov - 1;
+		    board[y][x + 1].soldier.hp = board[y][x + 1].soldier.hp - (Math.floor(this.att / 2));
+	        }
+		if(board[y][x + 1].soldier.type == "taisho"){
+			this.hp = this.hp - (board[y][x + 1].soldier.att);
+		}
+		if(board[y][x + 1].soldier.hp <= 0){
+			board[y][x + 1].soldier = null;
+			this.kills++;
+		}
+            }
+        }
+     }
+     okyou(unit){
+	    if(this.type == "monk" && this.mov > 0){
+	    	unit.hp = unit.hp + (unit.hpMax * 0.1);
+		unit.hp = Math.floor(unit.hp);
+    		this.mov = this.mov - 1;
+		if(unit.hp > unit.hpMax){
+		    unit.hp = unit.hpMax;
+		}
+		unit.att = unit.att + 3;
+	    }    
     }
 }
 
@@ -220,6 +369,34 @@ class Kumi{
             " Dan: " + this.tai[j].dan + 
 	    " Kills: " + this.tai[j].kills);
      }
+     upgrade(){
+	for(var i = 0; i < this.count; i++){
+	    if(this.tai[i].kills >= 3 && this.tai[i].dan == 0){
+		this.tai[i].hpMax = this.tai[i].hpMax + 1;
+		this.tai[i].hp = this.tai[i].hpMax;
+		this.tai[i].attMax = this.tai[i].attMax + 1;
+		this.tai[i].att = this.tai[i].attMax;
+		this.tai[i].def = this.tai[i].def + 1;
+		this.tai[i].dan = this.tai[i].dan + 1;
+	    }
+	    if(this.tai[i].kills >= 6 && this.tai[i].dan == 1){
+		this.tai[i].hpMax = this.tai[i].hpMax + 1;
+		this.tai[i].hp = this.tai[i].hpMax;
+		this.tai[i].attMax = this.tai[i].attMax + 1;
+		this.tai[i].att = this.tai[i].attMax;
+		this.tai[i].def = this.tai[i].def + 1;
+		this.tai[i].dan = this.tai[i].dan + 1;
+	    }
+	    if(this.tai[i].kills >= 10 && this.tai[i].dan == 2){
+		this.tai[i].hpMax = this.tai[i].hpMax + 1;
+		this.tai[i].hp = this.tai[i].hpMax;
+		this.tai[i].attMax = this.tai[i].attMax + 1;
+		this.tai[i].att = this.tai[i].attMax;
+		this.tai[i].def = this.tai[i].def + 1;
+		this.tai[i].dan = this.tai[i].dan + 1;
+	    }
+	}
+    }
 }
 
 // Terrain for placement in game board
@@ -284,8 +461,14 @@ class Terrain{
     }
     //Units attack each other. Remove if killed
     attack(defender){
-	this.soldier.hp = this.soldier.hp - defender.soldier.def;
-	defender.soldier.hp = defender.soldier.hp - this.soldier.att;
+	if(defender.type == "ashigaru" && this.type == "cavalry"){
+	    this.soldier.hp = this.soldier.hp - (defender.soldier.def * 2);
+	    defender.soldier.hp = defender.soldier.hp - this.soldier.att;
+	}
+	else{
+	    this.soldier.hp = this.soldier.hp - defender.soldier.def;
+	    defender.soldier.hp = defender.soldier.hp - this.soldier.att;
+	}
 	if(this.soldier.hp <= 0 && defender.soldier.hp > 0){
 	    this.soldier = null;
 	    defender.soldier.kills++;
@@ -307,11 +490,11 @@ class Terrain{
 	    alert("Only cavalry and ninja can cross water.");
 	}
 	else if(newLocation.soldier == null && this.soldier.mov > 0 && (newLocation.id == this.id - 1 || newLocation.id == this.id + 1 || newLocation.id == this.id - 10 || newLocation.id == this.id + 10 || newLocation.id == this.id + 11 || newLocation.id == this.id + 9|| newLocation.id == this.id - 11 || newLocation.id == this.id - 9)){
-	    if(this.type == "hill" && unit.type == "archer"){
+	    if((this.type == "castle" || this.type == "hill") && unit.type == "archer"){
 		unit.meleeDis = unit.meleeDis - this.attMeleeDis;
 	    }
 	    this.soldier.mov--;
-	    newLocation.soldier = unit;
+	    newLocation.set(unit);
 	    this.soldier = null;
 	}
 	else if(newLocation.soldier.color != this.soldier.color && this.soldier.mov > 0 && (newLocation.id == this.id - 1 || newLocation.id == this.id + 1 || newLocation.id == this.id - 10 || newLocation.id == this.id + 10 || newLocation.id == this.id + 11 || newLocation.id == this.id + 9|| newLocation.id == this.id - 11 || newLocation.id == this.id - 9)){
@@ -326,7 +509,7 @@ class Terrain{
     }
     set(unit){
 	this.soldier = unit;
-	if(this.type == "hill" && unit.type == "archer"){
+	if((this.type == "castle" || this.type == "hill") && unit.type == "archer"){
 		unit.meleeDis = unit.meleeDis + this.attMeleeDis;
 	}
     }
