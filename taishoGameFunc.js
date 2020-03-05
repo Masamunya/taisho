@@ -2,7 +2,7 @@
 * Game: Taisho
 * Author: Adam M. Deaton
 * Version: 0.1 
-* Date: 2020-02-20
+* Date: 2020-03-04
 * Copyright: All rights reserved: Adam M. Deaton 2020
 */ 
 var canvas = document.getElementById("myCanvas");
@@ -25,10 +25,16 @@ imgKenshiBlue = new Image();
 imgKenshiBlue.src = "kenshiBlue.png";
 imgKenshiRed = new Image();
 imgKenshiRed.src = "kenshiRed.png";
+imgSoheiRed = new Image();
+imgSoheiRed.src = "soheiRed.png";
 imgSohei = new Image();
 imgSohei.src = "sohei.png";
+imgArcherRed = new Image();
+imgArcherRed.src = "archerRed.png";
 imgArcher = new Image();
 imgArcher.src = "archer.png";
+imgNinjaRed = new Image();
+imgNinjaRed.src = "ninjaRed.png";
 imgNinja = new Image();
 imgNinja.src = "ninja.png";
 imgAshiRed = new Image();
@@ -282,7 +288,7 @@ function displayBoardUnits(myGame){
 			ctx.drawImage(imgKenshiBlue, x - 27, y - 45);
 		    }
 		}
-		else if(myGame.board[i][j].soldier.type == "monk"){
+		else if(myGame.board[i][j].soldier.type == "monk" && myGame.board[i][j].soldier.color == "blue"){
 		    if(UnitPlacedflag == 1){
 		        loadSohei(x - 27, y - 45);
 		    }
@@ -290,20 +296,44 @@ function displayBoardUnits(myGame){
 			ctx.drawImage(imgSohei, x - 27, y - 45);
 		    }
 		}
-		else if(myGame.board[i][j].soldier.type == "archer"){
+		else if(myGame.board[i][j].soldier.type == "monk" && myGame.board[i][j].soldier.color == "red"){
 		    if(UnitPlacedflag == 1){
-		        loadSohei(x - 27, y - 45);
+		        loadSoheiRed(x - 27, y - 45);
+		    }
+		    else{
+			ctx.drawImage(imgSoheiRed, x - 27, y - 45);
+		    }
+		}
+		else if(myGame.board[i][j].soldier.type == "archer" && myGame.board[i][j].soldier.color == "blue"){
+		    if(UnitPlacedflag == 1){
+		        loadArcher(x - 27, y - 45);
 		    }
 		    else{
 			ctx.drawImage(imgArcher, x - 27, y - 45);
 		    }
 		}
-		else if(myGame.board[i][j].soldier.type == "ninja"){
+		else if(myGame.board[i][j].soldier.type == "archer" && myGame.board[i][j].soldier.color == "red"){
+		    if(UnitPlacedflag == 1){
+		        loadArcherRed(x - 27, y - 45);
+		    }
+		    else{
+			ctx.drawImage(imgArcherRed, x - 27, y - 45);
+		    }
+		}
+		else if(myGame.board[i][j].soldier.type == "ninja" && myGame.board[i][j].soldier.color == "blue"){
 		    if(UnitPlacedflag == 1){
 		        loadNinja(x - 27, y - 45);
 		    }
 		    else{
 			ctx.drawImage(imgNinja, x - 27, y - 45);
+		    }
+		}
+		else if(myGame.board[i][j].soldier.type == "ninja" && myGame.board[i][j].soldier.color == "red"){
+		    if(UnitPlacedflag == 1){
+		        loadNinjaRed(x - 27, y - 45);
+		    }
+		    else{
+			ctx.drawImage(imgNinjaRed, x - 27, y - 45);
 		    }
 		}
 		else if(myGame.board[i][j].soldier.type == "ashigaru" && myGame.board[i][j].soldier.color == "red"){
@@ -475,6 +505,12 @@ function printOptions(unit, options){
     else if(unit.type == "monk"){
 	ctx.fillText("OKYO", 945, 565);
     }
+    else if(unit.type == "cavalry"){
+	ctx.fillText("CHARGE", 945, 565);
+    }
+    else if(unit.type == "taisho"){
+	ctx.fillText("RALLY", 945, 565);
+    }
     ctx.closePath();
 }
 
@@ -545,6 +581,7 @@ function defaultSetBoard(myGame){
     myGame.board[0][5].set(myGame.kumi.tai[0]); //Taisho
     myGame.board[9][4].set(myGame.enemyKumi.tai[0]);
     let j = 0;
+    let i = 0;
     //Create base red units
     for(let i = 0; i < 12; i++){
 	j = i;
@@ -566,7 +603,7 @@ function defaultSetBoard(myGame){
     myGame.board[1][1].set(myGame.kumi.tai[7]); //Ninja
     myGame.board[0][0].set(myGame.kumi.tai[8]); //Ashigaru
     myGame.board[0][9].set(myGame.kumi.tai[3]); //Medic
-    myGame.board[1][2].set(myGame.kumi.tai[5]); //Cavalry
+    myGame.board[3][0].set(myGame.kumi.tai[5]); //Cavalry
     myGame.board[1][8].set(myGame.kumi.tai[6]); //Monk
     myGame.board[0][4].set(myGame.kumi.tai[1]); //Ashigaru
     myGame.board[1][4].set(myGame.kumi.tai[9]);
@@ -574,7 +611,7 @@ function defaultSetBoard(myGame){
     myGame.board[1][6].set(myGame.kumi.tai[11]);
     myGame.board[0][6].set(myGame.kumi.tai[12]);
     //Create Base Blue Units
-    for(let i = 0; i < 12; i++){
+    for(i = 0; i < 12; i++){
 	j = i;
 	if(j > 6){
 	    j = 0;
@@ -594,14 +631,13 @@ function defaultSetBoard(myGame){
     myGame.board[8][8].set(myGame.enemyKumi.tai[7]);
     myGame.board[9][9].set(myGame.enemyKumi.tai[8]);
     myGame.board[9][0].set(myGame.enemyKumi.tai[3]);
-    myGame.board[8][7].set(myGame.enemyKumi.tai[5]);
+    myGame.board[6][9].set(myGame.enemyKumi.tai[5]);
     myGame.board[8][1].set(myGame.enemyKumi.tai[6]);
     myGame.board[9][5].set(myGame.enemyKumi.tai[1]);
     myGame.board[8][4].set(myGame.enemyKumi.tai[9]);
     myGame.board[8][5].set(myGame.enemyKumi.tai[10]);
     myGame.board[8][3].set(myGame.enemyKumi.tai[11]);
     myGame.board[9][3].set(myGame.enemyKumi.tai[12]);
-
 }
 
 //Check if taisho is dead
@@ -652,10 +688,12 @@ function startGame(){
 	        tempY = terrainIDY; 
 	        tempX = terrainIDX;
 		console.log("X " + tempX + " Y " + tempY);
+		//End turn
 	     	if(tempX == 10 && tempY == 10){
 		    if(curTurn == 1){
 			enemyKumi.upgrade();
 			curTurn = 0;
+			//curTurn = cpuTurn(myGame); //Testing outputs
 		    }
 		    else{
 			shinsengumi.upgrade();
@@ -678,7 +716,7 @@ function startGame(){
 		    	    printStats(myGame.board[tempY][tempX].soldier);
 		    	    printOptions(myGame.board[tempY][tempX].soldier, options);
 			    //No moves remaining reset X, Y
-			    if(myGame.board[tempY][tempX].soldier.mov < 1){
+			    if(myGame.board[tempY][tempX].soldier.mov < 1 && myGame.board[tempY][tempX].soldier.type != "cavalry"){
 				tempY = -1;
 		    	        tempX = -1;
 				terrainIDY = -1;
@@ -698,13 +736,32 @@ function startGame(){
 	    else if(terrainIDX == 10 && terrainIDY == 8){
 			options = 0;
 			console.log("Move");
-			printOptions(myGame.board[tempY][tempX].soldier, options);
+		if(myGame.board[tempY][tempX].soldier != null){
+		    printOptions(myGame.board[tempY][tempX].soldier, options);
+		}
 	    }
 	    else if(terrainIDX == 11 && terrainIDY == 8){
 			options = 1;
 			console.log("Special");
-			printOptions(myGame.board[tempY][tempX].soldier, options);
-			
+		if(tempX < 10 && myGame.board[tempY][tempX].soldier != null){
+		    printOptions(myGame.board[tempY][tempX].soldier, options);
+		}
+		//Charge
+		if(myGame.board[tempY][tempX].soldier.type == "cavalry"){
+		    console.log("charge");
+	  	    myGame.board[tempY][tempX].soldier.charge();
+		    options = 0;
+		}
+		else if(myGame.board[tempY][tempX].soldier.type == "taisho"){
+		    console.log("rally");
+		    if(curTurn == 1){
+	  	    	myGame.board[tempY][tempX].soldier.rally(enemyKumi);
+		    }
+		    else{
+			myGame.board[tempY][tempX].soldier.rally(shinsengumi);
+		    }
+		    options = 0;
+		}	
 	    }
 	    //if tempX > 9 then tempX is not a moveable unit
 	    else if(tempX < 10){

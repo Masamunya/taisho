@@ -2,7 +2,7 @@
 * Game: Taisho
 * Author: Adam M. Deaton
 * Version: 0.1 
-* Date: 2020-02-20
+* Date: 2020-03-04
 * Copyright: All rights reserved: Adam M. Deaton 2020
 */  
 
@@ -331,6 +331,7 @@ class Unit{
             }
         }
      }
+     //Monk special ability
      okyou(unit){
 	    if(this.type == "monk" && this.mov > 0){
 	    	unit.hp = unit.hp + (unit.hpMax * 0.1);
@@ -341,6 +342,27 @@ class Unit{
 		}
 		unit.att = unit.att + 3;
 	    }    
+    }
+    //Cavalry special ability
+    charge(){
+	this.mov++;
+	this.hp = this.hp - 3;
+	if(this.hp < 1){
+	    this.hp = 1;
+	}
+    }
+    //Taisho special ability
+    rally(kumi){
+	if(this.mov > 0){
+	    this.mov--;
+	    for(var i = 1; i < kumi.count; i++){
+		kumi.tai[i].att = kumi.tai[i].att + 2;
+	    }
+	}
+	this.hp = this.hp - 7;
+	if(this.hp < 1){
+	    this.hp = 1;
+	}
     }
 }
 
@@ -411,18 +433,18 @@ class Terrain{
 		this.attMeleeDis = -1; // Only effects archers
 		this.attHealing = 0;
 		this.attDef = 0;
-		this.attMov = 0;
+		this.attMov = -1; //Only effects cavalry
 	}
 	else if(type == "village"){
 	        this.attMeleeDis = 0;
-		this.attHealing = 1.25; // Only effects ninja
+		this.attHealing = 1.25; // Only effects ninja && ashigaru
 		this.attDef = 0;
 		this.attMov = 0;
 	}
 	else if(type == "temple"){
 	    	this.attMeleeDis = 0;
 		this.attHealing = 1.25; // Only effects warrior monks
-		this.attDef = 0;
+		this.attDef = 1; //monks only
 		this.attMov = 0;
 	}
 	else if(type == "rice field"){
@@ -432,9 +454,9 @@ class Terrain{
 		this.attMov = -1; // Only effects cavalry
 	}
 	else if(type == "castle"){
-		this.attMeleeDis = 1;
+		this.attMeleeDis = 2; //archers only
 		this.attHealing = 1.25;
-		this.attDef = 1;
+		this.attDef = 2;
 		this.attMov = 0;
 	}
 	else if(type == "hill"){
@@ -457,6 +479,78 @@ class Terrain{
 	}
 	else{
 	    alert("ERROR: Terrain type not recognized.");
+	}
+    }
+    setAttribute(){
+	if(this.type == "castle" && this.soldier != null){
+	    this.soldier.def = this.soldier.def + this.attDef;
+	    if(this.soldier.type == "archer"){
+		this.soldier.meleeDis = this.soldier.meleeDis + this.attMeleeDis;
+	    }
+	    this.soldier.hp = Math.floor(this.soldier.hp * this.attHealing);
+	    if(this.soldier.hp > this.soldier.hpMax){
+		this.soldier.hp = this.soldier.hpMax;
+	    }
+	}
+	else if(this.type == "hill" && this.soldier != null){
+	    this.soldier.def = this.soldier.def + this.attDef;
+	    if(this.soldier.type == "archer"){
+		this.soldier.meleeDis = this.soldier.meleeDis + this.attMeleeDis;
+	    }
+	}
+	else if(this.type == "forest" && this.soldier != null){
+	    if(this.soldier.type == "archer"){
+		this.soldier.meleeDis = this.soldier.meleeDis + this.attMeleeDis;
+	    }
+	    if(this.soldier.type == "cavalry"){
+		this.soldier.mov = this.soldier.mov + this.attMov;
+	    }
+	}
+	else if(this.type == "temple" && this.soldier != null){
+	    if(this.soldier.type == "monk"){
+	        this.soldier.def = this.soldier.def + this.attDef;
+		this.soldier.hp = Math.floor(this.soldier.hpMax * this.attHealing);
+	    	if(this.soldier.hp > this.soldier.hpMax){
+		    this.soldier.hp = this.soldier.hpMax;
+	    	}
+	    }
+	}
+	else if(this.type == "rice field" && this.soldier != null){
+	    if(this.soldier.type == "cavalry"){
+		this.soldier.mov = this.soldier.mov + this.attMov;
+	    }
+	}
+	else if(this.type == "village" && this.soldier != null){
+	    if(this.soldier.type == "ninja" || this.soldier.type == "ashigaru"){
+		this.soldier.hp = Math.floor(this.soldier.hpMax * this.attHealing);
+	    	if(this.soldier.hp > this.soldier.hpMax){
+		    this.soldier.hp = this.soldier.hpMax;
+	    	}
+	    }
+	}
+    }
+    removeAttribute(){
+	if(this.type == "castle" && this.soldier != null){
+	    this.soldier.def = this.soldier.def - this.attDef;
+	    if(this.soldier.type == "archer"){
+		this.soldier.meleeDis = this.soldier.meleeDis - this.attMeleeDis;
+	    }
+	}
+	if(this.type == "hill" && this.soldier != null){
+	    this.soldier.def = this.soldier.def - this.attDef;
+	    if(this.soldier.type == "archer"){
+		this.soldier.meleeDis = this.soldier.meleeDis - this.attMeleeDis;
+	    }
+	}
+	if(this.type == "forest" && this.soldier != null){
+	    if(this.soldier.type == "archer"){
+		this.soldier.meleeDis = this.soldier.meleeDis + (-1 * this.attMeleeDis);
+	    }
+	}
+	if(this.type == "temple" && this.soldier != null){
+	    if(this.soldier.type == "monk"){
+	        this.soldier.def = this.soldier.def - this.attDef;
+	    }
 	}
     }
     //Units attack each other. Remove if killed
@@ -490,10 +584,11 @@ class Terrain{
 	    alert("Only cavalry and ninja can cross water.");
 	}
 	else if(newLocation.soldier == null && this.soldier.mov > 0 && (newLocation.id == this.id - 1 || newLocation.id == this.id + 1 || newLocation.id == this.id - 10 || newLocation.id == this.id + 10 || newLocation.id == this.id + 11 || newLocation.id == this.id + 9|| newLocation.id == this.id - 11 || newLocation.id == this.id - 9)){
-	    if((this.type == "castle" || this.type == "hill") && unit.type == "archer"){
+	    /*if((this.type == "castle" || this.type == "hill") && unit.type == "archer"){
 		unit.meleeDis = unit.meleeDis - this.attMeleeDis;
-	    }
+	    }*/
 	    this.soldier.mov--;
+	    this.removeAttribute();
 	    newLocation.set(unit);
 	    this.soldier = null;
 	}
@@ -509,9 +604,11 @@ class Terrain{
     }
     set(unit){
 	this.soldier = unit;
+	this.setAttribute();
+	/*
 	if((this.type == "castle" || this.type == "hill") && unit.type == "archer"){
 		unit.meleeDis = unit.meleeDis + this.attMeleeDis;
-	}
+	}*/
     }
 }
 
